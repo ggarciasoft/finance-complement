@@ -1,4 +1,4 @@
 {
     "connectionString": "mongodb://localhost:27017",
-    "dbName": "emailProcessor"
+    "dbName": "finance-complement"
 }

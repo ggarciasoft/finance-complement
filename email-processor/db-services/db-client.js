@@ -15,16 +15,12 @@ async function getDb() {
     }
 }
 
-const client = loadClient();
-
-client.connect();
-
 export default {
     getConfigData: async function () {
         let db = await getDb();
         if (db) {
-            return null;
+            return db.collection("config-data").find();
         }
-        return null;
+        return {};
     }
 };

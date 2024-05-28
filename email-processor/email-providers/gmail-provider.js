@@ -71,10 +71,11 @@ async function authorize() {
  *
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
-async function listLabels(auth) {
+async function getEmails(auth, configData) {
     const gmail = google.gmail({ version: 'v1', auth });
-    const res = await gmail.users.labels.list({
+    const res = await gmail.users.messages.list({
         userId: 'me',
+        q: `label:recibos-pagos-facturas after:${configData.fromDate} before:${configData.toDate}`
     });
     const labels = res.data.labels;
     if (!labels || labels.length === 0) {
@@ -87,4 +88,9 @@ async function listLabels(auth) {
     });
 }
 
-authorize().then(listLabels).catch(console.error);
+export default {
+    getEmails: async function (configData) {
+        let mailClient = await authorize();
+        return await getEmails(mailClient, configData);
+    }
+};
