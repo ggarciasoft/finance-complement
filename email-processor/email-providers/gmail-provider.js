@@ -10,8 +10,9 @@ const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const TOKEN_PATH = path.join(process.cwd(), '..', 'configuration-files', 'gmail-token.json');
-const CREDENTIALS_PATH = path.join(process.cwd(), '..', 'configuration-files', 'gmail-credentials.json');
+const currentWorkDirectory = process.cwd();
+const TOKEN_PATH = path.join(currentWorkDirectory, 'configuration-files', 'gmail-token.json');
+const CREDENTIALS_PATH = path.join(currentWorkDirectory, 'configuration-files', 'gmail-credentials.json');
 
 /**
  * Reads previously authorized credentials from the save file.
@@ -71,26 +72,17 @@ async function authorize() {
  *
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
-async function getEmails(auth, configData) {
-    const gmail = google.gmail({ version: 'v1', auth });
+async function getEmails(configData) {
+    let mailClient = await authorize();
+
+    const gmail = google.gmail({ version: 'v1', mailClient });
+
     const res = await gmail.users.messages.list({
         userId: 'me',
-        q: `label:recibos-pagos-facturas after:${configData.fromDate} before:${configData.toDate}`
+        q: `label:recibos-pagos-facturas after:${configData.fromDate}`
     });
-    const labels = res.data.labels;
-    if (!labels || labels.length === 0) {
-        console.log('No labels found.');
-        return;
-    }
-    console.log('Labels:');
-    labels.forEach((label) => {
-        console.log(`- ${label.name}`);
-    });
+
+    return res;
 }
 
-export default {
-    getEmails: async function (configData) {
-        let mailClient = await authorize();
-        return await getEmails(mailClient, configData);
-    }
-};
+module.exports = getEmails;
