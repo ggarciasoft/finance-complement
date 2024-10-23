@@ -11,8 +11,9 @@ const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 // created automatically when the authorization flow completes for the first
 // time.
 const currentWorkDirectory = process.cwd();
-const TOKEN_PATH = path.join(currentWorkDirectory, 'configuration-files', 'gmail-token.json');
-const CREDENTIALS_PATH = path.join(currentWorkDirectory, 'configuration-files', 'gmail-credentials.json');
+const TOKEN_PATH = path.join(currentWorkDirectory, 'configuration-files', 'credentials', 'gmail-token.json');
+const CREDENTIALS_PATH = path.join(currentWorkDirectory, 'configuration-files', 'credentials', 'gmail-credentials.json');
+var mailClient;
 
 /**
  * Reads previously authorized credentials from the save file.
@@ -67,17 +68,8 @@ async function authorize() {
     return client;
 }
 
-/**
- * Lists the labels in the user's account.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
 async function getEmails(configData) {
-    let mailClient = await authorize();
-
-    const gmail = google.gmail({ version: 'v1', mailClient });
-
-    const res = await gmail.users.messages.list({
+    const res = await mailClient.users.messages.list({
         userId: 'me',
         q: `label:recibos-pagos-facturas after:${configData.fromDate}`
     });
@@ -85,4 +77,20 @@ async function getEmails(configData) {
     return res;
 }
 
-module.exports = getEmails;
+async function getEmailDetail(emailId) {
+    const res = await mailClient.users.messages.get({
+        userId: 'me',
+        id: emailId
+    });
+
+    return res;
+}
+
+authorize().then(async auth => {
+    mailClient = google.gmail({ version: 'v1', auth });
+});
+
+module.exports = {
+    getEmails,
+    getEmailDetail
+};
