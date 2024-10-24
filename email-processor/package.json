@@ -2,10 +2,11 @@
   "name": "email-processor",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx tsc",
+    "start": "node src/index.js",
+    "build-start": "npm run build && npm run start"
   },
   "author": "",
   "license": "ISC",

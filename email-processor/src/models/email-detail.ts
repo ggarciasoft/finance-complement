@@ -9,6 +9,6 @@ export class MessagePart {
 }
 
 export class EmailDetail {
-    from: string;
+    from?: string;
     payload: MessagePart | undefined;
 }

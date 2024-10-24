@@ -1,12 +1,13 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { GmailProvider } from './email-providers/gmail-provider.ts';
-import { EmailProcessorService } from './services/email-processor-service.ts';
-import { ConfigData } from './models/config-data.ts';
+import { GmailProvider } from './email-providers/gmail-provider';
+import { EmailProcessorService } from './services/email-processor-service';
+import { ConfigData } from './models/config-data';
 
-const secondsSinceEpoch = (date) => Math.floor(date.getTime() / 1000);
-const CONFIGURATION_PATH = join(process.cwd(), 'configuration-files', 'main-config.json');
-const EMAIL_PROCESSED_PATH = join(process.cwd(), 'configuration-files', 'email-processed.json');
+const secondsSinceEpoch = (date: Date) => Math.floor(date.getTime() / 1000);
+const currentWorkDirectory = process.cwd();
+const CONFIGURATION_PATH = join(currentWorkDirectory, 'src', 'configuration-files', 'main-config.json');
+const EMAIL_PROCESSED_PATH = join(currentWorkDirectory, 'src', 'configuration-files', 'email-processed.json');
 
 /**
  * Get json data.

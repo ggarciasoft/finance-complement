@@ -17,8 +17,8 @@ export class GmailProvider implements IEmailProvider {
     constructor() {
         this.SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
         this.currentWorkDirectory = process.cwd();
-        this.TOKEN_PATH = path.join(this.currentWorkDirectory, 'configuration-files', 'credentials', 'gmail-token.json');
-        this.CREDENTIALS_PATH = path.join(this.currentWorkDirectory, 'configuration-files', 'credentials', 'gmail-credentials.json');
+        this.TOKEN_PATH = path.join(this.currentWorkDirectory, 'src', 'configuration-files', 'credentials', 'gmail-token.json');
+        this.CREDENTIALS_PATH = path.join(this.currentWorkDirectory, 'src', 'configuration-files', 'credentials', 'gmail-credentials.json');
 
         this.authorize().then(async auth => {
             this.mailClient = google.gmail({ version: 'v1', auth });
