@@ -1,25 +1,19 @@
-import { MessagePart } from "../models/email-detail";
-import { IEmailProvider } from "./i-email-provider";
+import { ConfigData } from "../models/config-data";
+import { IEmailProvider } from "./email-providers/i-email-provider";
+export interface IEmailProcessorService {
+    processEmail(emailId: string, emailProvider: IEmailProvider): Promise<void>;
+}
 
-export class EmailProcessorService {
-    // Decode the email body
-    getBody(messagePayload: MessagePart) {
-        let encodedBody: string = '';
-        if (messagePayload.parts) {
-            encodedBody = messagePayload.parts.filter(part => part.mimeType === 'text/html' || part.mimeType === 'text/plain')[0].body?.data || '';
-        } else {
-            encodedBody = messagePayload.body?.data || '';
-        }
-        const buffer = Buffer.from(encodedBody, 'base64');
-        return buffer.toString('utf-8');
+export class EmailProcessorService implements IEmailProcessorService {
+    configData: ConfigData;
+
+    constructor(configData: ConfigData) {
+        this.configData = configData;
     }
 
-    async processEmail(emailId: string, emailProvider: IEmailProvider) {
+    async processEmail(emailId: string, emailProvider: IEmailProvider): Promise<void> {
         const emailDetailRes = await emailProvider.getEmailDetail(emailId);
-        if (emailDetailRes.payload) {
-            const body = this.getBody(emailDetailRes.payload);
-            //const from = emailDetailRes.data.payload.headers["from"];
-            console.log(emailDetailRes);
-        }
+        const emailParser = emailProvider.getEmailParser();
+        const transaction = await emailParser.getTransaction(emailDetailRes);
     }
 }

@@ -3,10 +3,13 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { authenticate } from '@google-cloud/local-auth';
 import { google, gmail_v1 } from 'googleapis';
-import { ConfigData } from '../models/config-data';
-import { EmailList } from '../models/email-list';
-import { EmailDetail } from '../models/email-detail';
-import { IEmailProvider } from "../services/i-email-provider";
+import { ConfigData } from '../../models/config-data';
+import { EmailList } from '../../models/email-list';
+import { EmailDetail } from '../../models/email-detail';
+import { IEmailProvider } from "./i-email-provider";
+import { IEmailParser } from '../email-parser/i-email-parser';
+
+
 
 export class GmailProvider implements IEmailProvider {
     SCOPES: string[];
@@ -14,15 +17,13 @@ export class GmailProvider implements IEmailProvider {
     currentWorkDirectory: string;
     TOKEN_PATH: string;
     CREDENTIALS_PATH: string;
-    constructor() {
+    emailParser: IEmailParser;
+    constructor(public configData: ConfigData, emailParser: IEmailParser) {
+        this.emailParser = emailParser;
         this.SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
         this.currentWorkDirectory = process.cwd();
         this.TOKEN_PATH = path.join(this.currentWorkDirectory, 'src', 'configuration-files', 'credentials', 'gmail-token.json');
         this.CREDENTIALS_PATH = path.join(this.currentWorkDirectory, 'src', 'configuration-files', 'credentials', 'gmail-credentials.json');
-
-        this.authorize().then(async auth => {
-            this.mailClient = google.gmail({ version: 'v1', auth });
-        });
     }
 
     /**
@@ -76,13 +77,14 @@ export class GmailProvider implements IEmailProvider {
         return client;
     }
 
-    async getEmails(configData: ConfigData): Promise<EmailList> {
+    async getEmails(): Promise<EmailList> {
         if (!this.mailClient) {
-            return { emailIds: [] };
+            const auth = await this.authorize();
+            this.mailClient = google.gmail({ version: 'v1', auth });
         }
         const res = await this.mailClient.users.messages.list({
             userId: 'me',
-            q: `label:recibos-pagos-facturas after:${configData.fromDate}`
+            q: `label:recibos-pagos-facturas after:${this.configData.fromDate}`
         });
 
         const emailList = new EmailList();
@@ -109,4 +111,8 @@ export class GmailProvider implements IEmailProvider {
         return emailDetail;
     }
 
+
+    getEmailParser(): IEmailParser {
+        return this.emailParser;
+    }
 };
