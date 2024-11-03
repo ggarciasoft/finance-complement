@@ -10,5 +10,6 @@ export class MessagePart {
 
 export class EmailDetail {
     from?: string;
+    title?: string;
     payload: MessagePart | undefined;
 }

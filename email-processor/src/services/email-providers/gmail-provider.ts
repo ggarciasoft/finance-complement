@@ -7,7 +7,7 @@ import { ConfigData } from '../../models/config-data';
 import { EmailList } from '../../models/email-list';
 import { EmailDetail } from '../../models/email-detail';
 import { IEmailProvider } from "./i-email-provider";
-import { IEmailParser } from '../email-parser/i-email-parser';
+import { IEmailExtracter } from '../email-extracter/i-email-extracter';
 
 
 
@@ -17,9 +17,7 @@ export class GmailProvider implements IEmailProvider {
     currentWorkDirectory: string;
     TOKEN_PATH: string;
     CREDENTIALS_PATH: string;
-    emailParser: IEmailParser;
-    constructor(public configData: ConfigData, emailParser: IEmailParser) {
-        this.emailParser = emailParser;
+    constructor(private configData: ConfigData, private emailExtracter: IEmailExtracter) {
         this.SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
         this.currentWorkDirectory = process.cwd();
         this.TOKEN_PATH = path.join(this.currentWorkDirectory, 'src', 'configuration-files', 'credentials', 'gmail-token.json');
@@ -106,13 +104,14 @@ export class GmailProvider implements IEmailProvider {
         const emailDetail = new EmailDetail();
         if (res.data.payload) {
             emailDetail.from = res.data.payload.headers?.find(o => o.name === "from")?.value || '';
+            emailDetail.title = res.data.payload.headers?.find(o => o.name === "subject")?.value || '';
             emailDetail.payload = res.data.payload || {};
         }
         return emailDetail;
     }
 
 
-    getEmailParser(): IEmailParser {
-        return this.emailParser;
+    getEmailExtracter(): IEmailExtracter {
+        return this.emailExtracter;
     }
 };

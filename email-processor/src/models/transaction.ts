@@ -6,12 +6,14 @@ export class Transaction {
     amount: number = 0;
     date: Date = new Date();
     note: string = "";
-    transactionType: TransactionType = TransactionType.Transfer;
+    transactionType: TransactionType = TransactionType.None;
 }
 
 export enum TransactionType {
-    Transfer,
+    None,
+    TransferBetweenAccount,
     Deposit,
     Withdrawal,
-    Pay
+    PayWithAccount,
+    PayWithCard
 }

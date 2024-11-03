@@ -1,6 +1,7 @@
-import { EmailDetail } from "../../models/email-detail";
-import { Transaction } from "../../models/transaction";
+import { Banks } from "../../models/config-data";
+import { Transaction, TransactionType } from "../../models/transaction";
 
 export interface IEmailParser {
-    getTransaction(emailDetail: EmailDetail): Promise<Transaction>;
+    bank: Banks;
+    getTransaction(emailBody: string, transactionType: TransactionType): Promise<Transaction | undefined>;
 }
