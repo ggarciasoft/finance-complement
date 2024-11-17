@@ -3,6 +3,7 @@ import { EmailDetail } from "../../models/email-detail";
 import { TransactionType } from "../../models/transaction";
 import { BHDParser } from "./bhd-parser";
 import { IEmailParser } from "./i-email-parser";
+import logger from "../logger";
 
 export interface IEmailParserFactory {
   getEmailParser(
@@ -23,8 +24,9 @@ export class EmailParserFactory implements IEmailParserFactory {
     );
 
     if (!emailBank) {
-      console.error(
-        `EmailBankMapping not found for Email From: ${emailDetail.from}.`
+      logger.error(
+        `EmailBankMapping not found for Email From: ${emailDetail.from}.`,
+        "email-parser-factory-get-email-parser"
       );
       return;
     }
@@ -36,7 +38,7 @@ export class EmailParserFactory implements IEmailParserFactory {
         parser = this.bhdParser;
         break;
       default:
-        console.error(`Email Parser not found for bank: ${emailBank!.bank}.`);
+        logger.error(`Email Parser not found for bank: ${emailBank!.bank}.`, "email-parser-factory-get-email-parser");
     }
     
     // Get the transaction type from the email title.

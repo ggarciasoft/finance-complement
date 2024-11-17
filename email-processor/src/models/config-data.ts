@@ -2,9 +2,13 @@ import { TransactionType } from "./transaction";
 
 export interface ConfigData {
   fromDate: string;
+  defaultCurrency: Currency;
   emailProcessed: string[];
   emailBankMapping: EmailBankMapping[];
-  accountMapping: AccountMapping[];
+  accountMapping: Account[];
+  toshlToken: string;
+  toshlUrl: string;
+  exchangeRate: ExchangeRate[];
 }
 
 export interface EmailBankMapping {
@@ -14,7 +18,9 @@ export interface EmailBankMapping {
   emailTransactionType: EmailTransactionType[];
 }
 
-export interface AccountMapping {
+export interface Account {
+  toshlAccountId: string;
+  currency: Currency;
   accountName: string;
   bankAccountFormats: string[];
 }
@@ -27,3 +33,14 @@ export interface EmailTransactionType {
 export enum Banks {
   BHD = "BHD",
 }
+
+export enum Currency {
+  DOP = "DOP",
+  USD = "USD",
+}
+
+export interface ExchangeRate {
+  currency: Currency;
+  rate: number;
+}
+

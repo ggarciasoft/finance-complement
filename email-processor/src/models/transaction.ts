@@ -1,6 +1,8 @@
+import { Account } from "./config-data";
+
 export class Transaction {
-    accountFrom: string | null = null;
-    accountTo: string | null = null;
+    accountFrom: Account | null = null;
+    accountTo: Account | null = null;
     category: string = "";
     tags: string[] = [];
     amount: number = 0;

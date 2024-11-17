@@ -1,6 +1,6 @@
 import { EmailDetail, MessagePart } from "../../models/email-detail";
 import { IEmailExtracter } from "./i-email-extracter";
-
+import logger from "../logger";
 export class GmailExtracter implements IEmailExtracter {
     // Decode the email body
     private getBody(messagePayload: MessagePart): string {
@@ -18,7 +18,7 @@ export class GmailExtracter implements IEmailExtracter {
         if (emailDetail.payload) {
             return this.getBody(emailDetail.payload);
         }
-        console.error(`emailDetail.payload is null or undefined.`);
+        logger.error(`emailDetail.payload is null or undefined.`, "gmail-extracter-get-email-body");
         return null;
     }
 }

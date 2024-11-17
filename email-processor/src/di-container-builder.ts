@@ -1,4 +1,4 @@
-import { Container, token, injected, Token } from 'brandi';
+import { Container, token, injected } from 'brandi';
 import { GmailProvider } from './services/email-providers/gmail-provider';
 import { EmailProcessorService } from './services/email-processor-service';
 import { ConfigData } from './models/config-data';
@@ -6,7 +6,7 @@ import { getConfigurationData } from './utils'
 import { GmailExtracter } from './services/email-extracter/gmail-extracter';
 import { BHDParser } from './services/email-parser/bhd-parser';
 import { EmailParserFactory } from './services/email-parser/email-parser-factory';
-import { IEmailParser } from './services/email-parser/i-email-parser';
+import { FinanceComplementService } from './services/finance-complement-service';
 
 const TOKENS = {
   gmailProvider: token<GmailProvider>('gmailProvider'),
@@ -14,7 +14,8 @@ const TOKENS = {
   emailProcessorService: token<EmailProcessorService>('emailProcessorService'),
   gmailExtracter: token<GmailExtracter>('gmailExtracter'),
   emailParserFactory: token<EmailParserFactory>('emailParserFactory'),
-  bhdParser: token<IEmailParser>('bhdParser'),
+  bhdParser: token<BHDParser>('bhdParser'),
+  financeComplementService: token<FinanceComplementService>('financeComplementService'),
 };
 
 const container = new Container();
@@ -48,9 +49,16 @@ container
   .toInstance(BHDParser)
   .inSingletonScope();
 
+container
+  .bind(TOKENS.financeComplementService)
+  .toInstance(FinanceComplementService)
+  .inSingletonScope();
+
 injected(GmailProvider, TOKENS.configData, TOKENS.gmailExtracter);
-injected(EmailProcessorService, TOKENS.emailParserFactory);
+injected(EmailProcessorService, TOKENS.emailParserFactory, TOKENS.financeComplementService);
 injected(EmailParserFactory, TOKENS.configData, TOKENS.bhdParser);
+injected(FinanceComplementService, TOKENS.configData);
+injected(BHDParser, TOKENS.configData);
 
 export {
   TOKENS,

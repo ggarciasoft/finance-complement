@@ -1,11 +1,12 @@
 import { IEmailParserFactory } from "./email-parser/email-parser-factory";
 import { IEmailProvider } from "./email-providers/i-email-provider";
+import { IFinanceComplementService } from "./finance-complement-service";
 export interface IEmailProcessorService {
     processEmail(emailId: string, emailProvider: IEmailProvider): Promise<void>;
 }
 
 export class EmailProcessorService implements IEmailProcessorService {
-    constructor(private emailParserFactory: IEmailParserFactory) {
+    constructor(private emailParserFactory: IEmailParserFactory, private financeComplementService: IFinanceComplementService) {
     }
 
     async processEmail(emailId: string, emailProvider: IEmailProvider): Promise<void> {
@@ -25,6 +26,7 @@ export class EmailProcessorService implements IEmailProcessorService {
 
         const transaction = await emailParser.parser.getTransaction(body, emailParser.transactionType);
         if (transaction) {
+            await this.financeComplementService.saveTransaction(transaction);
         }
     }
 }
