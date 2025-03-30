@@ -1,16 +1,19 @@
 import { container, TOKENS } from './di-container-builder';
 import logger from './services/logger';
-import { saveConfigurationData, secondsSinceEpoch } from './utils';
+import { saveConfigurationData } from './utils';
 
 async function start() {
-    logger.info(`Getting gmailProvider`, "index");
-    const gmailProvider = container.get(TOKENS.gmailProvider);
+    logger.info("Email Processor Started.", "index");
+    logger.addIdentation();
+
+    logger.info(`Getting mailProvider`, "index");
+    const mailProvider = container.get(TOKENS.gmailProvider);
 
     logger.info(`Getting emailProcessorService`, "index");
-    const processorService = container.get(TOKENS.emailProcessorService);
+    const emailProcessorService = container.get(TOKENS.emailProcessorService);
 
     logger.info(`Getting emails`, "index");
-    const resEmails = await gmailProvider.getEmails();
+    const resEmails = await mailProvider.getEmails();
 
     logger.info(`Getting configData`, "index");
     const configData = container.get(TOKENS.configData);
@@ -19,13 +22,17 @@ async function start() {
     const emailToBeProcessed = resEmails.emailIds.filter(emailId => !configData.emailProcessed.includes(emailId));
     logger.info(`Email to be processed: ${emailToBeProcessed.length}`, "index");
     for (const emailId of emailToBeProcessed) {
-        processorService.processEmail(emailId, gmailProvider);
+        try {
+            await emailProcessorService.processEmail(emailId, mailProvider);
+        } catch (error) {
+            logger.error(`Error processing email: ${emailId}. Exception: ${error}`, "index");
+        }
     }
 
     logger.info(`Saving configData`, "index");
     configData.emailProcessed = [...configData.emailProcessed, ...emailToBeProcessed];
-    configData.fromDate = secondsSinceEpoch(new Date()).toString();
+    configData.fromDate = new Date();
     saveConfigurationData(configData);
 }
 
-start().then(() => logger.info("Email Processor Started.", "index"));
+start().then(() => logger.info("Email Processor Ended.", "index"));

@@ -1,7 +1,7 @@
 import { Account, ConfigData } from "../models/config-data";
 import { ToshlEntry } from "../models/toshl-entry";
 import { Transaction, TransactionType } from "../models/transaction";
-import logger from "../services/logger";
+import logger from "./logger";
 export interface IFinanceComplementService {
     saveTransaction(transaction: Transaction): Promise<void>;
 }
@@ -11,7 +11,16 @@ export class FinanceComplementService implements IFinanceComplementService {
     }
 
     async saveTransaction(transaction: Transaction): Promise<void> {
+        logger.addIdentation();
+        logger.info(`Saving transaction: ${JSON.stringify(transaction)}`, "FinanceComplementService/saveTransaction");
         const account = transaction.accountFrom ?? transaction.accountTo!;
+
+        if(!transaction.amount || !account) {
+            logger.error(`Transaction amount or account is null`, "FinanceComplementService/saveTransaction");
+            logger.removeIdentation();
+            return;
+        }
+        
         const currencyCode = account?.currency ?? this.configData.defaultCurrency;
         let toshlEntry: ToshlEntry = {
             amount: transaction.amount,
@@ -30,16 +39,18 @@ export class FinanceComplementService implements IFinanceComplementService {
         switch (transaction.transactionType) {
             case TransactionType.TransferBetweenAccount:
                 toshlEntry.transaction = transaction.accountFrom ? {
-                    account: transaction.accountFrom.toshlAccountId,
+                    account: transaction.accountTo!.toshlAccountId,
                     currency: {
-                        code: transaction.accountFrom.currency,
-                        rate: this.getExchangeRate(transaction.accountFrom),
+                        code: transaction.accountTo!.currency,
+                        rate: this.getExchangeRate(transaction.accountTo!),
                         fixed: false
                     }
                 } : undefined;
                 break;
         }
 
+        logger.info(`Sending Toshl entry: ${JSON.stringify(toshlEntry)}`, "FinanceComplementService/saveTransaction");
+        
         const response = await fetch(this.configData.toshlUrl, {
             method: 'POST',
             headers: {
@@ -50,8 +61,12 @@ export class FinanceComplementService implements IFinanceComplementService {
         });
 
         if (!response.ok) {
-            logger.error(`Failed to create Toshl entry: ${response.status} ${response.statusText}`, "finance-complement-service-save-transaction");
+            logger.error(`Failed to create Toshl entry: ${response.status} ${response.statusText}`, "FinanceComplementService/saveTransaction");
         }
+
+        logger.info(`Toshl entry created: ${response.status}`, "FinanceComplementService/saveTransaction");
+
+        logger.removeIdentation();
     }
 
     private getExchangeRate(account: Account): number {

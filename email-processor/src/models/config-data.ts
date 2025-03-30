@@ -1,7 +1,7 @@
 import { TransactionType } from "./transaction";
 
 export interface ConfigData {
-  fromDate: string;
+  fromDate: Date;
   defaultCurrency: Currency;
   emailProcessed: string[];
   emailBankMapping: EmailBankMapping[];

@@ -4,6 +4,7 @@ import { ConfigData } from './models/config-data';
 import logger from './services/logger';
 
 const secondsSinceEpoch = (date: Date) => Math.floor(date.getTime() / 1000);
+const epochToDate = (epoch: number) => new Date(epoch * 1000);
 const CONFIGURATION_PATH = join(process.cwd(), 'src', 'configuration-files', 'main-config.json');
 
 function getConfigurationData(): ConfigData {
@@ -32,5 +33,6 @@ function saveConfigurationData(configData: ConfigData): void {
 export {
     getConfigurationData,
     saveConfigurationData,
-    secondsSinceEpoch
+    secondsSinceEpoch,
+    epochToDate
 };

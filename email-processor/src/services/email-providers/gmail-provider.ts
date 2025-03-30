@@ -8,8 +8,8 @@ import { EmailList } from '../../models/email-list';
 import { EmailDetail } from '../../models/email-detail';
 import { IEmailProvider } from "./i-email-provider";
 import { IEmailExtracter } from '../email-extracter/i-email-extracter';
-
-
+import logger from '../logger';
+import { secondsSinceEpoch } from '../../utils';
 
 export class GmailProvider implements IEmailProvider {
     SCOPES: string[];
@@ -80,15 +80,28 @@ export class GmailProvider implements IEmailProvider {
             const auth = await this.authorize();
             this.mailClient = google.gmail({ version: 'v1', auth });
         }
+
+        logger.addIdentation();
+
+        const emailFroms = this.configData.emailBankMapping.map(o => o.emailFrom.join('|')).join('|');
+
+        const query = `label:recibos-pagos-facturas from:${emailFroms} after:${secondsSinceEpoch(new Date(this.configData.fromDate))}`;
+        
+        logger.info(`query: ${query}`, "GmailProvider/getEmails");
+
         const res = await this.mailClient.users.messages.list({
             userId: 'me',
-            q: `label:recibos-pagos-facturas after:${this.configData.fromDate}`
+            q: query
         });
+
+        logger.info(JSON.stringify(res.data), "GmailProvider/getEmails");
 
         const emailList = new EmailList();
         if (res.data.messages) {
             emailList.emailIds = res.data.messages.map(message => message.id || '');
         }
+
+        logger.removeIdentation();
         return emailList;
     }
 
@@ -103,8 +116,12 @@ export class GmailProvider implements IEmailProvider {
 
         const emailDetail = new EmailDetail();
         if (res.data.payload) {
-            emailDetail.from = res.data.payload.headers?.find(o => o.name === "from")?.value || '';
-            emailDetail.title = res.data.payload.headers?.find(o => o.name === "subject")?.value || '';
+            logger.info(JSON.stringify(res.data.payload), "gmail-provider", "payload");
+            emailDetail.from = res.data.payload.headers?.find(o => o.name === "From")?.value || '';
+            if(emailDetail.from && emailDetail.from.includes('<')) {
+                emailDetail.from = emailDetail.from.split('<')[1].split('>')[0];
+            }
+            emailDetail.title = res.data.payload.headers?.find(o => o.name === "Subject")?.value || '';
             emailDetail.payload = res.data.payload || {};
         }
         return emailDetail;

@@ -6,7 +6,7 @@ import { getConfigurationData } from './utils'
 import { GmailExtracter } from './services/email-extracter/gmail-extracter';
 import { BHDParser } from './services/email-parser/bhd-parser';
 import { EmailParserFactory } from './services/email-parser/email-parser-factory';
-import { FinanceComplementService } from './services/finance-complement-service';
+import { FinanceComplementService } from './services/toshl-finance-complement-service';
 
 const TOKENS = {
   gmailProvider: token<GmailProvider>('gmailProvider'),

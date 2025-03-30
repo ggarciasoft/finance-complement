@@ -17,6 +17,7 @@ export class EmailParserFactory implements IEmailParserFactory {
   getEmailParser(
     emailDetail: EmailDetail
   ): { parser: IEmailParser | undefined; transactionType: TransactionType | undefined } | undefined {
+    logger.addIdentation();
     const emailBank = this.configData.emailBankMapping.find(
       (o) =>
         o.emailFrom.includes(emailDetail.from!) &&
@@ -25,11 +26,17 @@ export class EmailParserFactory implements IEmailParserFactory {
 
     if (!emailBank) {
       logger.error(
-        `EmailBankMapping not found for Email From: ${emailDetail.from}.`,
-        "email-parser-factory-get-email-parser"
+        `EmailBankMapping not found for Email From: ${emailDetail.from} and Title: ${emailDetail.title}.`,
+        "EmailParserFactory/getEmailParser"
       );
+      logger.removeIdentation();
       return;
     }
+
+    logger.info(
+      `EmailBankMapping found for Email From: ${emailDetail.from} and Title: ${emailDetail.title}.`,
+      "EmailParserFactory/getEmailParser"
+    );
 
     let parser: IEmailParser | undefined;
     let transactionType: TransactionType | undefined;
@@ -38,8 +45,13 @@ export class EmailParserFactory implements IEmailParserFactory {
         parser = this.bhdParser;
         break;
       default:
-        logger.error(`Email Parser not found for bank: ${emailBank!.bank}.`, "email-parser-factory-get-email-parser");
+        logger.error(`Email Parser not found for bank: ${emailBank!.bank}.`, "EmailParserFactory/getEmailParser");
     }
+
+    logger.info(
+      `Email Parser found for bank: ${emailBank!.bank}.`,
+      "EmailParserFactory/getEmailParser"
+    );
     
     // Get the transaction type from the email title.
     transactionType =
@@ -47,6 +59,7 @@ export class EmailParserFactory implements IEmailParserFactory {
       (t) => t.emailTitle === emailDetail.title
       )?.transactionType || TransactionType.Deposit;
 
+    logger.removeIdentation();
     return { parser, transactionType }; 
   }
 }
