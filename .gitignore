@@ -106,3 +106,5 @@ configuration-files/
 **/*.js
 **/*.js.map
 !/**/tests/*.js
+!jest.config.js
+!jest.setup.js
