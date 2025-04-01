@@ -1,9 +1,9 @@
 import { Banks, ConfigData } from "../../models/config-data";
 import { EmailDetail } from "../../models/email-detail";
 import { TransactionType } from "../../models/transaction";
+import { Logger } from "../logger";
 import { BHDParser } from "./bhd-parser";
 import { IEmailParser } from "./i-email-parser";
-import logger from "../logger";
 
 export interface IEmailParserFactory {
   getEmailParser(
@@ -12,12 +12,12 @@ export interface IEmailParserFactory {
 }
 
 export class EmailParserFactory implements IEmailParserFactory {
-  constructor(private configData: ConfigData, private bhdParser: BHDParser) {}
+  constructor(private configData: ConfigData, private bhdParser: BHDParser, private logger: Logger) {}
 
   getEmailParser(
     emailDetail: EmailDetail
   ): { parser: IEmailParser | undefined; transactionType: TransactionType | undefined } | undefined {
-    logger.addIdentation();
+    this.logger.addIdentation();
     const emailBank = this.configData.emailBankMapping.find(
       (o) =>
         o.emailFrom.includes(emailDetail.from!) &&
@@ -25,15 +25,15 @@ export class EmailParserFactory implements IEmailParserFactory {
     );
 
     if (!emailBank) {
-      logger.error(
+      this.logger.error(
         `EmailBankMapping not found for Email From: ${emailDetail.from} and Title: ${emailDetail.title}.`,
         "EmailParserFactory/getEmailParser"
       );
-      logger.removeIdentation();
+      this.logger.removeIdentation();
       return;
     }
 
-    logger.info(
+    this.logger.info(
       `EmailBankMapping found for Email From: ${emailDetail.from} and Title: ${emailDetail.title}.`,
       "EmailParserFactory/getEmailParser"
     );
@@ -45,10 +45,10 @@ export class EmailParserFactory implements IEmailParserFactory {
         parser = this.bhdParser;
         break;
       default:
-        logger.error(`Email Parser not found for bank: ${emailBank!.bank}.`, "EmailParserFactory/getEmailParser");
+        this.logger.error(`Email Parser not found for bank: ${emailBank!.bank}.`, "EmailParserFactory/getEmailParser");
     }
 
-    logger.info(
+    this.logger.info(
       `Email Parser found for bank: ${emailBank!.bank}.`,
       "EmailParserFactory/getEmailParser"
     );
@@ -59,7 +59,7 @@ export class EmailParserFactory implements IEmailParserFactory {
       (t) => t.emailTitle === emailDetail.title
       )?.transactionType || TransactionType.Deposit;
 
-    logger.removeIdentation();
+    this.logger.removeIdentation();
     return { parser, transactionType }; 
   }
 }

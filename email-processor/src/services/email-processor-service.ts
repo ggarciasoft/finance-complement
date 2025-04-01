@@ -1,65 +1,72 @@
 import { IEmailParserFactory } from "./email-parser/email-parser-factory";
 import { IEmailProvider } from "./email-providers/i-email-provider";
 import { IFinanceComplementService } from "./toshl-finance-complement-service";
-import logger from "./logger";
+import { Logger } from './logger';
+
 export interface IEmailProcessorService {
   processEmail(emailId: string, emailProvider: IEmailProvider): Promise<void>;
 }
 
 export class EmailProcessorService implements IEmailProcessorService {
   constructor(
-    private emailParserFactory: IEmailParserFactory,
-    private financeComplementService: IFinanceComplementService
+    private readonly emailParserFactory: IEmailParserFactory,
+    private readonly financeComplementService: IFinanceComplementService,
+    private readonly logger: Logger
   ) {}
 
   async processEmail(
     emailId: string,
     emailProvider: IEmailProvider
   ): Promise<void> {
-    logger.addIdentation();
-    logger.info(
-      `Processing emailId: ${emailId}`,
-      "EmailProcessorService/processEmail"
-    );
-
-    const emailDetailRes = await emailProvider.getEmailDetail(emailId);
-    const emailParser = this.emailParserFactory.getEmailParser(emailDetailRes);
-    if (!emailParser || !emailParser.transactionType || !emailParser.parser) {
-      logger.error(
-        `EmailParser error emailId: ${emailId}`,
+    try {
+      this.logger.addIdentation();
+      this.logger.info(
+        `Processing emailId: ${emailId}`,
         "EmailProcessorService/processEmail"
       );
-      logger.removeIdentation();
-      return;
-    }
 
-    const emailExtracter = emailProvider.getEmailExtracter();
+      const emailDetailRes = await emailProvider.getEmailDetail(emailId);
+      const emailParser = this.emailParserFactory.getEmailParser(emailDetailRes);
+      if (!emailParser || !emailParser.transactionType || !emailParser.parser) {
+        this.logger.error(
+          `EmailParser error emailId: ${emailId}`,
+          "EmailProcessorService/processEmail"
+        );
+        this.logger.removeIdentation();
+        return;
+      }
 
-    const body = emailExtracter.getEmailBody(emailDetailRes);
+      const emailExtracter = emailProvider.getEmailExtracter();
 
-    if (!body) {
-      logger.error(
-        `Email body not found for emailId: ${emailId}.`,
+      const body = emailExtracter.getEmailBody(emailDetailRes);
+
+      if (!body) {
+        this.logger.error(
+          `Email body not found for emailId: ${emailId}.`,
+          "EmailProcessorService/processEmail"
+        );
+        this.logger.removeIdentation();
+        return;
+      }
+
+      const transaction = await emailParser.parser.getTransaction(
+        body,
+        emailParser.transactionType
+      );
+      if (transaction) {
+        await this.financeComplementService.saveTransaction(transaction);
+        this.logger.removeIdentation();
+        return;
+      }
+
+      this.logger.error(
+        `Transaction not found for emailId: ${emailId}.`,
         "EmailProcessorService/processEmail"
       );
-      logger.removeIdentation();
-      return;
+      this.logger.removeIdentation();
+    } catch (error) {
+      this.logger.error(`Error processing email: ${error}`);
+      throw error;
     }
-
-    const transaction = await emailParser.parser.getTransaction(
-      body,
-      emailParser.transactionType
-    );
-    if (transaction) {
-      await this.financeComplementService.saveTransaction(transaction);
-      logger.removeIdentation();
-      return;
-    }
-
-    logger.error(
-      `Transaction not found for emailId: ${emailId}.`,
-      "EmailProcessorService/processEmail"
-    );
-    logger.removeIdentation();
   }
 }

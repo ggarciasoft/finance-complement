@@ -1,8 +1,8 @@
 import { container, TOKENS } from './di-container-builder';
-import logger from './services/logger';
 import { saveConfigurationData } from './utils';
 
 async function start() {
+    const logger = container.get(TOKENS.logger);
     logger.info("Email Processor Started.", "index");
     logger.addIdentation();
 
@@ -35,4 +35,4 @@ async function start() {
     saveConfigurationData(configData);
 }
 
-start().then(() => logger.info("Email Processor Ended.", "index"));
+start().then(() => {});

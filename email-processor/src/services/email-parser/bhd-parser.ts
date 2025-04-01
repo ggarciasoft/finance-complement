@@ -2,55 +2,62 @@ import { IEmailParser } from "./i-email-parser";
 import { Transaction, TransactionType } from "../../models/transaction";
 import { Account, Banks, ConfigData } from "../../models/config-data";
 import { JSDOM } from "jsdom";
-import logger from "../logger";
+import { Logger } from '../logger';
+
 export class BHDParser implements IEmailParser {
   bank: Banks = Banks.BHD;
 
-  constructor(private configData: ConfigData) {}
+  constructor(private configData: ConfigData, private readonly logger: Logger) {}
 
   getTransaction(
     emailBody: string,
     transactionType: TransactionType
   ): Promise<Transaction | undefined> {
-    logger.addIdentation();
+    this.logger.addIdentation();
     return new Promise((resolve) => {
       let transaction: Transaction | undefined;
-      switch (transactionType.toString()) {
-        case "PayWithCard":
-          transaction = this.parsePayWithCard(emailBody);
-          transaction!.amount = -transaction!.amount;
-          break;
-        case "TransferBetweenAccount":
-          transaction = this.parseTransferBetweenAccounts(emailBody);
-          break;
-        case "PayWithAccount":
-          transaction = this.parseTransferBetweenAccounts(emailBody);
-          transaction!.amount = -transaction!.amount;
-          break;
-        case "Deposit":
-          transaction = this.parseDeposit(emailBody);
-          break;
-        default:
-          logger.error(
-            `Transaction type not supported: ${transactionType}.`,
-            "BHDParser/getTransaction"
-          );
-          logger.removeIdentation();
-          resolve(undefined);
-          break;
-      }
+      try {
+        switch (transactionType.toString()) {
+          case "PayWithCard":
+            transaction = this.parsePayWithCard(emailBody);
+            transaction!.amount = -transaction!.amount;
+            break;
+          case "TransferBetweenAccount":
+            transaction = this.parseTransferBetweenAccounts(emailBody);
+            break;
+          case "PayWithAccount":
+            transaction = this.parseTransferBetweenAccounts(emailBody);
+            transaction!.amount = -transaction!.amount;
+            break;
+          case "Deposit":
+            transaction = this.parseDeposit(emailBody);
+            break;
+          default:
+            this.logger.error(
+              `Transaction type not supported: ${transactionType}.`,
+              "BHDParser/getTransaction"
+            );
+            this.logger.removeIdentation();
+            resolve(undefined);
+            break;
+        }
 
-      if (transaction) {
-        transaction.transactionType = transactionType;
-        transaction.note += ` - ${transactionType} - Email Processor.`;
+        if (transaction) {
+          transaction.transactionType = transactionType;
+          transaction.note += ` - ${transactionType} - Email Processor.`;
+        }
+        this.logger.info(
+          `Transaction: ${JSON.stringify(transaction)}`,
+          "BHDParser/getTransaction",
+          "bhd-parser-transactions"
+        );
+        this.logger.removeIdentation();
+        resolve(transaction);
+      } catch (error) {
+        this.logger.error(`Error parsing BHD email: ${error}`);
+        this.logger.removeIdentation();
+        resolve(undefined);
       }
-      logger.info(
-        `Transaction: ${JSON.stringify(transaction)}`,
-        "BHDParser/getTransaction",
-        "bhd-parser-transactions"
-      );
-      logger.removeIdentation();
-      resolve(transaction);
     });
   }
 

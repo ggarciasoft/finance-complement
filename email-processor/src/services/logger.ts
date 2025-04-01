@@ -1,19 +1,41 @@
 import fs from "fs";
-
-var identation = "";
-
-function logToFile(message: string, fileName: string) {
-  const date = new Date().toISOString();
-  const logStream = fs.createWriteStream(`logs/${fileName}.txt`, { flags: "a" });
-  logStream.write(`${message} - ${date}\n`);
-  logStream.end();
+export interface ILogger {
+  info: (message: string, context: string, fileName: string) => void;
+  warn: (message: string, context: string, fileName: string) => void;
+  error: (message: string, context: string, fileName: string) => void;
+  addIdentation: () => void;
+  removeIdentation: () => void;
 }
-const logger = {
-  info: (message: string, context: string = "Email Processor", fileName: string = "logs") => logToFile(`${context} - [INFO] ${message}`, fileName),
-  warn: (message: string, context: string = "Email Processor", fileName: string = "logs") => logToFile(`${context} - [WARN] ${message}`, fileName),
-  error: (message: string, context: string = "Email Processor", fileName: string = "logs") => logToFile(`${context} - [ERROR] ${message}`, fileName),
-  addIdentation: () => identation += "  ",
-  removeIdentation: () => identation = identation.slice(0, -2),
-};
 
-export default logger;
+export class Logger implements ILogger {
+  private identation = "";
+
+  constructor() {}
+
+  private logToFile(message: string, fileName: string) {
+    const date = new Date().toISOString();
+    const logStream = fs.createWriteStream(`logs/${fileName}.txt`, { flags: "a" });
+    logStream.write(`${message} - ${date}\n`);
+    logStream.end();
+  }
+
+  info(message: string, context: string = "Email Processor", fileName: string = "logs") {
+    this.logToFile(`${context} - [INFO] ${message}`, fileName);
+  }
+
+  warn(message: string, context: string = "Email Processor", fileName: string = "logs") {
+    this.logToFile(`${context} - [WARN] ${message}`, fileName);
+  }
+
+  error(message: string, context: string = "Email Processor", fileName: string = "logs") {
+    this.logToFile(`${context} - [ERROR] ${message}`, fileName);
+  }
+
+  addIdentation() {
+    this.identation += "  ";
+  }
+
+  removeIdentation() {
+    this.identation = this.identation.slice(0, -2);
+  }
+}
