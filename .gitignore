@@ -105,3 +105,4 @@ dist
 configuration-files/
 **/*.js
 **/*.js.map
+!/**/tests/*.js
