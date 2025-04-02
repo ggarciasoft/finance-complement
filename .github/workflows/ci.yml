@@ -33,6 +33,11 @@ jobs:
         working-directory: ./email-processor
         run: npm install
 
+      - name: Install dependencies
+        shell: bash
+        working-directory: ./email-processor
+        run: npm i --save-dev @types/jsdom
+
       - name: Build TypeScript
         shell: bash
         working-directory: ./email-processor
