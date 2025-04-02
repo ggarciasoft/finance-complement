@@ -1,6 +1,5 @@
 const { FinanceComplementService } = require('../services/toshl-finance-complement-service');
 const { Transaction, TransactionType } = require('../models/transaction');
-const { Account, ConfigData } = require('../models/config-data');
 
 // Mock fetch
 global.fetch = jest.fn();
