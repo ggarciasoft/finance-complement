@@ -33,8 +33,8 @@ export class FinanceComplementService implements IFinanceComplementService {
             },
             date: transaction.date.toISOString().split('T')[0],
             desc: transaction.note,
-            category: transaction.category,
-            tags: transaction.tags
+            category: "57509326",// Category is other for now, should be transaction.category,
+            tags: ["82156693", ...transaction.tags] //Tag is API Entry.
         };
 
         switch (transaction.transactionType) {

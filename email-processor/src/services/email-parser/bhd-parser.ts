@@ -86,6 +86,7 @@ export class BHDParser implements IEmailParser {
       }
       // Parse date (cells[0])
       const dateStr = cells[0].textContent?.trim() || "";
+      this.logger.info(`dateStr: ${dateStr}`, "BHDParser/parsePayWithCard");
       const [datePart] = dateStr.split(" ");
       const [day, month, year] = datePart.split("/");
       transaction.date = new Date(
@@ -117,11 +118,17 @@ export class BHDParser implements IEmailParser {
   }
 
   getAccount(accountFormat: string | null): Account | null {
-    return accountFormat
-      ? this.configData.accountMapping.find((a) =>
-          a.bankAccountFormats.includes(accountFormat)
-        ) ?? null
-      : null;
+    if(accountFormat){
+      for(const account of this.configData.accountMapping){
+        for(const bankAccountFormat of account.bankAccountFormats){
+          if(bankAccountFormat.includes(accountFormat)){
+            return account;
+          }
+        }
+      }
+    }
+    
+    return null;
   }
 
   parseTransferBetweenAccounts(emailHtml: string): Transaction | undefined {
