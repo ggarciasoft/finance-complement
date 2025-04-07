@@ -17,7 +17,6 @@ export class EmailParserFactory implements IEmailParserFactory {
   getEmailParser(
     emailDetail: EmailDetail
   ): { parser: IEmailParser | undefined; transactionType: TransactionType | undefined } | undefined {
-    this.logger.addIdentation();
     const emailBank = this.configData.emailBankMapping.find(
       (o) =>
         o.emailFrom.includes(emailDetail.from!) &&
@@ -29,7 +28,6 @@ export class EmailParserFactory implements IEmailParserFactory {
         `EmailBankMapping not found for Email From: ${emailDetail.from} and Title: ${emailDetail.title}.`,
         "EmailParserFactory/getEmailParser"
       );
-      this.logger.removeIdentation();
       return;
     }
 
@@ -59,7 +57,6 @@ export class EmailParserFactory implements IEmailParserFactory {
       (t) => t.emailTitle === emailDetail.title
       )?.transactionType || TransactionType.Deposit;
 
-    this.logger.removeIdentation();
     return { parser, transactionType }; 
   }
 }

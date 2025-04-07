@@ -19,7 +19,6 @@ export class EmailProcessorService implements IEmailProcessorService {
     emailProvider: IEmailProvider
   ): Promise<void> {
     try {
-      this.logger.addIdentation();
       this.logger.info(
         `Processing emailId: ${emailId}`,
         "EmailProcessorService/processEmail"
@@ -32,7 +31,6 @@ export class EmailProcessorService implements IEmailProcessorService {
           `EmailParser error emailId: ${emailId}`,
           "EmailProcessorService/processEmail"
         );
-        this.logger.removeIdentation();
         return;
       }
 
@@ -45,7 +43,6 @@ export class EmailProcessorService implements IEmailProcessorService {
           `Email body not found for emailId: ${emailId}.`,
           "EmailProcessorService/processEmail"
         );
-        this.logger.removeIdentation();
         return;
       }
 
@@ -55,7 +52,6 @@ export class EmailProcessorService implements IEmailProcessorService {
       );
       if (transaction) {
         await this.financeComplementService.saveTransaction(transaction);
-        this.logger.removeIdentation();
         return;
       }
 
@@ -63,7 +59,6 @@ export class EmailProcessorService implements IEmailProcessorService {
         `Transaction not found for emailId: ${emailId}.`,
         "EmailProcessorService/processEmail"
       );
-      this.logger.removeIdentation();
     } catch (error) {
       this.logger.error(`Error processing email: ${error}`);
       throw error;

@@ -13,7 +13,6 @@ export class BHDParser implements IEmailParser {
     emailBody: string,
     transactionType: TransactionType
   ): Promise<Transaction | undefined> {
-    this.logger.addIdentation();
     return new Promise((resolve) => {
       let transaction: Transaction | undefined;
       try {
@@ -37,7 +36,6 @@ export class BHDParser implements IEmailParser {
               `Transaction type not supported: ${transactionType}.`,
               "BHDParser/getTransaction"
             );
-            this.logger.removeIdentation();
             resolve(undefined);
             break;
         }
@@ -51,11 +49,9 @@ export class BHDParser implements IEmailParser {
           "BHDParser/getTransaction",
           "bhd-parser-transactions"
         );
-        this.logger.removeIdentation();
         resolve(transaction);
       } catch (error) {
         this.logger.error(`Error parsing BHD email: ${error}`);
-        this.logger.removeIdentation();
         resolve(undefined);
       }
     });
@@ -86,12 +82,12 @@ export class BHDParser implements IEmailParser {
       }
       // Parse date (cells[0])
       const dateStr = cells[0].textContent?.trim() || "";
-      this.logger.info(`dateStr: ${dateStr}`, "BHDParser/parsePayWithCard");
       const [datePart] = dateStr.split(" ");
       const [day, month, year] = datePart.split("/");
+
       transaction.date = new Date(
         parseInt(year),
-        parseInt(month),
+        parseInt(month) - 1,
         parseInt(day)
       );
 
@@ -189,13 +185,23 @@ export class BHDParser implements IEmailParser {
     const transaction = new Transaction();
 
     // Get account numbers
-    const accountTo =
-      doc.querySelector("td[id$='idProductoOrigen'] p")?.textContent || null;
+    let accountTo =
+      doc.querySelector("td[id$='idProductoOrigen'] p")?.textContent || "";
+    accountTo = accountTo?.substring(accountTo.length - 4);
+    this.logger.info(`accountTo: ${accountTo}`, "BHDParser/parseDeposit");
     transaction.accountTo = this.getAccount(accountTo);
+    this.logger.info(`transaction.accountTo: ${transaction.accountTo}`, "BHDParser/parseDeposit");
 
     // Get amount
-    const amountStr =
-      doc.querySelector("td[id$='idDescription']")?.textContent || "";
+    var tags = doc.querySelectorAll("td[id$='idDescripcion']");
+
+    const amountStr = tags?.length ? tags[tags.length - 1].textContent : "";
+
+    if(!amountStr){
+      this.logger.error("Amount not found", "BHDParser/parseDeposit");
+      return;
+    }
+
     transaction.amount = parseFloat(
       amountStr.replace("RD$", "").replace(",", "").trim()
     );

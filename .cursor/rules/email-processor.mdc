@@ -1,0 +1,13 @@
+---
+description: 
+globs: *.ts
+---
+SYSTEM CONTEXT: You are assisting with a email processor, a program that read emails and create transactions in Toshl web app.
+The main code is in email-processor/src folder, the code that I update and create is in .ts files and they are mapped to .js files.
+Structure:
+- models/ - models used in the app
+- services/ - all the main logic
+- tests/ - unit tests
+- index.ts - entry point
+- di-container-builder.ts - dependency injection container
+- utils.ts - utilities.

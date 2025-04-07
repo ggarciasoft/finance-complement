@@ -96,8 +96,6 @@ export class GmailProvider implements IEmailProvider {
       this.mailClient = google.gmail({ version: "v1", auth });
     }
 
-    this.logger.addIdentation();
-
     const emailFroms = this.configData.emailBankMapping
       .map((o) => o.emailFrom.join("|"))
       .join("|");
@@ -106,21 +104,16 @@ export class GmailProvider implements IEmailProvider {
       new Date(this.configData.fromDate)
     )}`;
 
-    this.logger.info(`query: ${query}`, "GmailProvider/getEmails");
-
     const res = await this.mailClient.users.messages.list({
       userId: "me",
       q: query,
     });
-
-    this.logger.info(JSON.stringify(res.data), "GmailProvider/getEmails");
 
     const emailList = new EmailList();
     if (res.data.messages) {
       emailList.emailIds = res.data.messages.map((message) => message.id || "");
     }
 
-    this.logger.removeIdentation();
     return emailList;
   }
 
@@ -135,11 +128,6 @@ export class GmailProvider implements IEmailProvider {
 
     const emailDetail = new EmailDetail();
     if (res.data.payload) {
-      this.logger.info(
-        JSON.stringify(res.data.payload),
-        "gmail-provider",
-        "payload"
-      );
       emailDetail.from =
         res.data.payload.headers?.find((o) => o.name === "From")?.value || "";
       if (emailDetail.from && emailDetail.from.includes("<")) {

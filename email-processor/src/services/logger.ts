@@ -3,18 +3,21 @@ export interface ILogger {
   info: (message: string, context: string, fileName: string) => void;
   warn: (message: string, context: string, fileName: string) => void;
   error: (message: string, context: string, fileName: string) => void;
-  addIdentation: () => void;
-  removeIdentation: () => void;
+  createMainContext: (context: string) => void;
 }
 
 export class Logger implements ILogger {
-  private identation = "";
+  private mainContext: string = "";
 
   constructor() {}
 
   private logToFile(message: string, fileName: string) {
     const date = new Date().toISOString();
-    const logStream = fs.createWriteStream(`logs/${fileName}.txt`, { flags: "a" });
+    const rootPath = this.mainContext ? `logs/${this.mainContext}` : "logs";
+    if (!fs.existsSync(rootPath)) {
+      fs.mkdirSync(rootPath, { recursive: true });
+    }
+    const logStream = fs.createWriteStream(`${rootPath}/${fileName}.txt`, { flags: "a" });
     logStream.write(`${message} - ${date}\n`);
     logStream.end();
   }
@@ -31,11 +34,7 @@ export class Logger implements ILogger {
     this.logToFile(`${context} - [ERROR] ${message}`, fileName);
   }
 
-  addIdentation() {
-    this.identation += "  ";
-  }
-
-  removeIdentation() {
-    this.identation = this.identation.slice(0, -2);
+  createMainContext(context: string) {
+    this.mainContext = context;
   }
 }

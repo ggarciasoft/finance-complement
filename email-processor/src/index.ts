@@ -4,7 +4,6 @@ import { saveConfigurationData } from './utils';
 async function start() {
     const logger = container.get(TOKENS.logger);
     logger.info("Email Processor Started.", "index");
-    logger.addIdentation();
 
     logger.info(`Getting mailProvider`, "index");
     const mailProvider = container.get(TOKENS.gmailProvider);
@@ -23,6 +22,7 @@ async function start() {
     logger.info(`Email to be processed: ${emailToBeProcessed.length}`, "index");
     for (const emailId of emailToBeProcessed) {
         try {
+            logger.createMainContext(emailId);
             await emailProcessorService.processEmail(emailId, mailProvider);
         } catch (error) {
             logger.error(`Error processing email: ${emailId}. Exception: ${error}`, "index");

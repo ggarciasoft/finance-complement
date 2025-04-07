@@ -35,17 +35,14 @@ export class GmailExtracter implements IEmailExtracter {
   }
 
   getEmailBody(emailDetail: EmailDetail): string | null {
-    this.logger.addIdentation();
     if (emailDetail.payload) {
       const body = this.getBody(emailDetail.payload);
-      this.logger.removeIdentation();
       return body;
     }
     this.logger.error(
       `emailDetail.payload is null or undefined.`,
       "gmail-extracter-get-email-body"
     );
-    this.logger.removeIdentation();
     return null;
   }
 }
